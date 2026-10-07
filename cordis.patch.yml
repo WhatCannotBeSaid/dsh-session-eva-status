@@ -1,0 +1,11 @@
+# dsh-session-eva-status 自带的挂载补丁。
+# 这个包出现在 profile 的 dependencies 里时，宿主装载时会把下面这条 entry 插进来，
+# 不需要再去改 profile 的 cordis.patch.yml。
+- insert:
+    - id: session-eva-status
+      name: dsh-session-eva-status
+      # 浏览器半边可读到的开关（读不到时用同一份默认值）。
+      config:
+        hideOfficialDot: true
+        failed: true
+        archived: true

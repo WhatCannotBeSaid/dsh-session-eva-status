@@ -1,0 +1,52 @@
+{
+  "name": "dsh-session-eva-status",
+  "version": "0.1.0",
+  "description": "DSH 插件：按官方会话状态给侧栏会话行上色（EVA 风格）——橙=要你介入、紫=跑完未读、红=失败、归档=压暗。",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "session",
+    "status",
+    "sidebar",
+    "eva"
+  ],
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test test/client.test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-session",
+        "@deepseek-ai/dsh-client-ui-workspace"
+      ]
+    },
+    "compatibility": {
+      "dshReleases": {
+        "0.2.0-rc.2": "compatible"
+      }
+    }
+  },
+  "harnessRange": ">=0.2.0-rc.2"
+}
