@@ -7,5 +7,3 @@
       # 浏览器半边可读到的开关（读不到时用同一份默认值）。
       config:
         hideOfficialDot: true
-        failed: true
-        archived: true

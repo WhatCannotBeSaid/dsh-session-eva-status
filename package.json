@@ -1,7 +1,7 @@
 {
   "name": "dsh-session-eva-status",
   "version": "0.1.0",
-  "description": "DSH 插件：按官方会话状态给侧栏会话行上色（EVA 风格）——橙=要你介入、紫=跑完未读、红=失败、归档=压暗。",
+  "description": "DSH Web UI plugin: colors sidebar Session rows by their official status — orange rail = pending interaction, red rail = the selected session, purple rail = finished but unviewed, static rainbow title = pinned. Reads official Client services only; no polling, no host half.",
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -12,7 +12,15 @@
     "eva"
   ],
   "license": "MIT",
-  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WhatCannotBeSaid/dsh-session-eva-status.git"
+  },
+  "homepage": "https://github.com/WhatCannotBeSaid/dsh-session-eva-status#readme",
+  "bugs": {
+    "url": "https://github.com/WhatCannotBeSaid/dsh-session-eva-status/issues"
+  },
+  "private": false,
   "type": "module",
   "main": "lib/index.js",
   "exports": {
