@@ -6,10 +6,10 @@ Colors DSH sidebar Session rows by their **official** UI status, in an Evangelio
 
 | Row state | Official fact it reads | Decoration |
 |---|---|---|
-| Pending interaction (approval / question / plan review) | `uiSession.sessionStatus.pendingInteraction` | orange `#FF5C1A` full-height left rail + 1.6 s breathing |
-| Selected — the session open in the main view | `sessions.list` snapshot: `retainedBy.mainView > 0` | red `#FF3B30` full-height left rail, static |
+| Pending interaction (approval / question / plan review) | `uiSession.sessionStatus.pendingInteraction` | blue full-height left rail + 1.6 s breathing. Two blues, one per mode, both from card C ("Newtype" cover): dark `#AAC7EF`, light `#3F629C` |
+| Selected — the session open in the main view | `sessions.list` snapshot: `retainedBy.mainView > 0` | red full-height left rail, static. Two reds, one per mode: dark keeps `#FF3B30`, light overrides it with the redder, deeper `#E01B24` |
 | Finished but not viewed | `…sessionStatus.completionUnread` | purple `#7A4FD6` full-height left rail |
-| Pinned | `workspaces.list` snapshot: `pinnedSessionIds` | the row title becomes a static six-color rainbow (`background-clip: text`); the row itself gets no rail |
+| Pinned | `workspaces.list` snapshot: `pinnedSessionIds` | the row title becomes a static six-color rainbow (`background-clip: text`); the row itself gets no rail. Two palettes, one per mode: dark keeps the original six, light uses a darker six solved to ≥4.5:1 against the light wall |
 | Running / subagents running / idle / archived / blank | — | nothing drawn; the official spinner and archived dimming already say it |
 
 The official priority is pending > running > subagents > completed. When a session has finished but its subagents are still running, the official row shows the ongoing spinner, so this plugin draws nothing and lets that spinner through instead of calling the row "finished".
@@ -17,6 +17,12 @@ The official priority is pending > running > subagents > completed. When a sessi
 The plugin's own priority is pending > selected > subagents (yields) > unread. A row that needs you outranks the row you happen to be looking at, and a selected row keeps its red rail while its subagents run — the official spinner is not hidden on selected rows, so both readings stay visible at once.
 
 The design rule behind the palette: **shape carries meaning, color and light carry style.** The pin icon and the pinned-first ordering stay entirely official — only the pinned row's title text is re-colored, so the pin itself is never restyled or decorated.
+
+The rainbow is mode-scoped, because the same mid-luminance stops do not survive both backgrounds: on the light theme's wall (measured luminance 0.405–0.658 under the pinned titles) the original six score only 1.15–3.63:1, while on the dark theme's wall they are fine. Dark therefore keeps the original six colours unchanged, and light uses six darker stops of the same hues in the same order, each clearing 4.5:1 against the darkest patch measured under the title. The split is read from DSH's own dark marker (`body[data-ds-dark-theme]`, `theme-presenter.ts`), not from any theme-specific hook.
+
+The pending rail is mode-scoped for the same reason. Its blue comes from card C (the "Newtype" cover reference), which carries two blues: `#3F629C` (slate blue — 5.84:1 on the light wall but only 2.82:1 on the dark one) and `#AAC7EF` (pale blue — 9.94:1 on the dark wall but only 1.66:1 on the light one). Neither survives both, so each mode takes the one that reads on its own wall: light `#3F629C`, dark `#AAC7EF`. Both tiers share one `@keyframes`: the rail reads its colour through a custom property (`--dsh-session-eva-status-pending`), and the light rule overrides only that property, so the breathing period, easing and low point stay byte-for-byte identical and only the colour changes.
+
+The selected rail is mode-scoped for the same reason. `#FF3B30` keeps a high green channel (59) and scores only 3.39:1 on the light wall; light overrides the colour alone with the redder, deeper `#E01B24` — hue rotated past pure red (HSL 357.3°), green cut from 59 to 27 — which clears 4.62:1. Dark is byte-for-byte unchanged. The override is one extra rule scoped by `body:not([data-ds-dark-theme])` that sets `background` and nothing else, so the rail's geometry, stacking and lack of animation are untouched.
 
 ## Install
 
@@ -34,7 +40,7 @@ The shipped `cordis.patch.yml` inserts the entry with these defaults; edit them 
 |---|---|---|
 | `hideOfficialDot` | `true` | Hide the official status dot on pending and unread rows (their left rail replaces it) |
 | `breatheMs` | `1600` | Breathing period for the pending rail (ms, ≥ 200) |
-| `colors` | EVA palette | Override `pending` / `selected` / `unread` |
+| `colors` | EVA palette | Override `pending` / `pendingLight` / `selected` / `selectedLight` / `unread`. `pending` and `selected` are the dark-mode values; `pendingLight` and `selectedLight` are the light-mode overrides |
 
 A malformed config throws at load; nothing is silently skipped.
 
@@ -72,7 +78,7 @@ No code, stylesheet or copy from the official packages is bundled here: the plug
 - Archived rows are left alone: the official UI already dims their title, and an archived row shows no status dot there anyway.
 - The selected rail is an addition **on top of** the official selection highlight (the row's own background), not a replacement for it.
 - The pinned rainbow is text-only (`background-clip: text`), so it needs no extra DOM: nothing is inserted into the row, and uninstalling removes the attribute and the rule together.
-- The palette is deliberately theme-independent (EVA colors, not theme brand colors), and no row background is tinted, so the same rail reads the same on light and dark themes.
+- The palette is deliberately theme-independent (EVA colors, not theme brand colors) and no row background is tinted. Every colour comes from that one palette; where a single value cannot clear both walls, the mode that needs it takes the sibling stop instead — that is the case for the pending blue (two card C blues, one per wall) and the selected red (a redder, deeper light-tier red), and the rainbow's light tier is solved the same way (see above).
 - If a future DSH renames `data-row-key`, the plugin stops decorating rows and nothing else breaks.
 - No model-visible surface: the plugin registers no tool, command, prompt or context.
 

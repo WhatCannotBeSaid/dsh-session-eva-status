@@ -151,8 +151,35 @@ test('选中会话画红轨：颜色取 EVA 红，静态不呼吸', () => {
   assert.equal(rows[0].getAttribute('data-eva-state'), 'selected')
   const css = cssOf()
   assert.equal(css.includes('data-eva-state="selected"]::before'), true, '选中也有左轨')
-  assert.equal(/data-eva-state="selected"\]::before\{[^}]*#FF3B30/.test(css), true, '轨用 EVA 红')
+  assert.equal(/data-eva-state="selected"\]::before\{[^}]*#FF3B30/.test(css), true, '暗档轨用 EVA 红')
   assert.equal(/data-eva-state="selected"\]::before\{[^}]*animation/.test(css), false, '选中不呼吸')
+  // 亮档单独覆盖：整条规则只有 background 一个声明，靠 body:not(暗色) 限定。
+  assert.equal(
+    css.includes('html body:not([data-ds-dark-theme]) [data-row-key^="session:"][data-eva-state="selected"]::before{background:#E01B24}'),
+    true, '亮档红轨覆盖只改颜色')
+  assert.equal(css.includes('html body[data-ds-dark-theme] [data-row-key^="session:"][data-eva-state="selected"]'),
+    false, '暗档红轨不另立规则，仍走未分档的那条')
+})
+
+test('待处理画蓝轨：暗档一支、亮档一支，呼吸与几何都不动', () => {
+  const rows = [sessionRow('a')]
+  setup({ rows, statuses: new Map([['a', statusEntry({ pendingInteraction: { kind: 'approval' } })]]) })
+  assert.equal(rows[0].getAttribute('data-eva-state'), 'pending')
+  const css = cssOf()
+  // 蓝轨色值走自定义属性：暗档在基轨上直接给出，亮档只覆盖这一个属性。
+  assert.equal(
+    css.includes('html [data-row-key^="session:"][data-eva-state="pending"]::before{--dsh-session-eva-status-pending:#AAC7EF;'),
+    true, '暗档蓝轨取卡 C 的浅蓝')
+  assert.equal(
+    css.includes('html body:not([data-ds-dark-theme]) [data-row-key^="session:"][data-eva-state="pending"]::before{--dsh-session-eva-status-pending:#3F629C}'),
+    true, '亮档蓝轨只覆盖那一个自定义属性')
+  assert.equal(css.includes('html body[data-ds-dark-theme] [data-row-key^="session:"][data-eva-state="pending"]'),
+    false, '暗档不另立规则，仍走未分档的那条')
+  // 两档共用一份 @keyframes：周期、缓动、低点比例逐字不变。
+  assert.equal(css.includes('animation:dsh-session-eva-status-breathe 1600ms ease-in-out infinite'), true)
+  assert.equal(css.includes('0%,100%{background:var(--dsh-session-eva-status-pending)}'), true)
+  assert.equal(css.includes('50%{background:color-mix(in srgb, var(--dsh-session-eva-status-pending) 35%, transparent)}}'), true)
+  assert.equal(css.includes('#FF5C1A'), false, '旧橙轨已整体退场')
 })
 
 test('置顶行的标题走静态彩虹字，行本身不画轨', () => {
@@ -164,9 +191,19 @@ test('置顶行的标题走静态彩虹字，行本身不画轨', () => {
   assert.equal(css.includes('data-eva-pinned="true"]>:nth-child(2)'), true, '只染标题（行内第 2 个子元素）')
   assert.equal(css.includes('background-clip:text'), true, '彩虹靠背景裁到文字上')
   assert.equal(css.includes('color:transparent'), true)
+  // 暗档：冻结的原六色，逐字节不许动（EVA 主题 dark.1/dark.2 盯的是令牌，这里是它的对偶）。
+  assert.equal(css.includes('html body[data-ds-dark-theme] [data-row-key^="session:"][data-eva-pinned="true"]>:nth-child(2)'),
+    true, '暗档彩虹由暗色标记限定')
   for (const hex of ['#E5484D', '#F76B15', '#C99700', '#2E9E5B', '#0E8AA8', '#6E56CF']) {
-    assert.equal(css.includes(hex), true, `彩虹里有 ${hex}`)
+    assert.equal(css.includes(hex), true, `暗档彩虹里有 ${hex}`)
   }
+  // 亮档：同一形状、压暗到对最暗背景块 ≥4.5:1 的六色；两档由 :not() 互斥，不会同时命中。
+  assert.equal(css.includes('html body:not([data-ds-dark-theme]) [data-row-key^="session:"][data-eva-pinned="true"]>:nth-child(2)'),
+    true, '亮档彩虹由 :not(暗色) 限定')
+  for (const hex of ['#7A0F14', '#632A00', '#4A3900', '#0A4623', '#063B49', '#382B78']) {
+    assert.equal(css.includes(hex), true, `亮档彩虹里有 ${hex}`)
+  }
+  assert.equal(css.includes('data-ds-dark-theme'), true, '模式分档读官方暗色标记')
 })
 
 test('归档的置顶行不染彩虹（官方归档行本来也不显示图钉）', () => {
@@ -201,10 +238,11 @@ test('不铺底色：状态只由左轨表达，行上没有背景染色', () =>
   setup({ rows: [sessionRow('a')], statuses: new Map([['a', statusEntry({ pendingInteraction: { kind: 'approval' } })]]) })
   const css = cssOf()
   const backgrounds = css.match(/background-image:[^;}]*/g) ?? []
-  assert.equal(backgrounds.length, 1, '全表只有一处渐变，属于置顶标题')
+  assert.equal(backgrounds.length, 2, '全表只有置顶标题的渐变，亮暗各一条')
   assert.equal(backgrounds[0].includes('linear-gradient(90deg,'), true)
   assert.equal(css.includes('[data-eva-state="pending"]::before'), true, '只留左轨')
-  assert.equal(css.includes('color-mix(in srgb, #FF5C1A 35%, transparent)'), true, '呼吸低点照旧')
+  assert.equal(css.includes('color-mix(in srgb, var(--dsh-session-eva-status-pending) 35%, transparent)'), true,
+    '呼吸低点照旧，只是改成跟着自定义属性走')
 })
 
 test('失败态已整体删除：标记与样式表里都不留', () => {
@@ -297,6 +335,7 @@ test('配置错当场抛，不静默降级', () => {
     workspaces: { list: observable({ archivedSessionIds: [] }) },
   })
   assert.throws(() => plugin.apply(ctx, { colors: { pending: '' } }), /colors\.pending/)
+  assert.throws(() => plugin.apply(ctx, { colors: { pendingLight: '' } }), /colors\.pendingLight/)
   assert.throws(() => plugin.apply(ctx, { breatheMs: 10 }), /breatheMs/)
   assert.throws(() => plugin.apply(ctx, 'nope'), /config/)
 })
