@@ -1,6 +1,6 @@
 {
   "name": "dsh-session-eva-status",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "DSH Web UI plugin: colors sidebar Session rows by their official status — blue rail = pending interaction, red rail = the selected session, purple rail = finished but unviewed, static rainbow title = pinned. Reads official Client services only; no polling, no host half.",
   "keywords": [
     "dsh",

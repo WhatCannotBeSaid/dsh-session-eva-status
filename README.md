@@ -26,7 +26,21 @@ The selected rail is mode-scoped for the same reason. `#FF3B30` keeps a high gre
 
 ## Install
 
-The plugin is a Profile dependency, like the other local plugins in this directory. Add it to `~/.dsh/profiles/<profile>/package.json` (and to that profile's `dsh.bundles` list) and restart DSH, or use the plugin CLI with the package path:
+From the npm registry:
+
+```sh
+dsh plugin --profile <profile> add dsh-session-eva-status
+```
+
+Or straight from GitHub:
+
+```sh
+dsh plugin --profile <profile> add github:WhatCannotBeSaid/dsh-session-eva-status
+```
+
+Replace `<profile>` with the target profile name (for example `web`), then **restart DSH**: the client bundle is only refreshed when the module graph is recomposed, so a plain page refresh hits the old cache.
+
+Working from a checkout instead? Point the CLI at the directory — the package also installs as a plain Profile dependency listed in that profile's `package.json` and `dsh.bundles`:
 
 ```sh
 dsh plugin --profile <profile> add <path-to>/dsh-session-eva-status

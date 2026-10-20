@@ -26,7 +26,21 @@
 
 ## 安装
 
-与同目录其他本地插件一样，作为 Profile 依赖：把包加进 `~/.dsh/profiles/<profile>/package.json`（并加进该 profile 的 `dsh.bundles`）后重启 DSH，或用插件 CLI 指路径安装：
+从 npm registry 安装：
+
+```sh
+dsh plugin --profile <profile> add dsh-session-eva-status
+```
+
+或直接从 GitHub 装：
+
+```sh
+dsh plugin --profile <profile> add github:WhatCannotBeSaid/dsh-session-eva-status
+```
+
+把 `<profile>` 换成目标 profile 名（例如 `web`），然后**重启 DSH**：客户端束只在模块图重新合成时才会更新，单纯刷新页面会命中旧缓存。
+
+想用本地检出？直接指路径安装。本包同样可以作为普通 Profile 依赖写进该 profile 的 `package.json` 与 `dsh.bundles`：
 
 ```sh
 dsh plugin --profile <profile> add <path-to>/dsh-session-eva-status
